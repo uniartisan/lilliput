@@ -1354,6 +1354,10 @@ public:
   }
 #endif
 
+  void fast_lock(Register obj, Register hdr, Register t1, Register t2, Label& slow, bool rt_check_stack = true);
+  void fast_unlock(Register obj, Register hdr, Register t1, Register t2, Label& slow);
+  
+
 private:
 
   void repne_scan(Register addr, Register value, Register count, Register tmp);

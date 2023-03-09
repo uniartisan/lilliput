@@ -74,7 +74,7 @@ int C1_MacroAssembler::lock_object(Register hdr, Register obj, Register disp_hdr
   ld(hdr, Address(obj, hdr_offset));
 
   if (UseFastLocking) {
-    fast_lock(obj, hdr, t0, t1, slow_case);
+    fast_lock(obj, hdr, t0, t1, slow_case, false);
   } else {
     // and mark it as unlocked
     ori(hdr, hdr, markWord::unlocked_value);
