@@ -4479,7 +4479,7 @@ void MacroAssembler::double_move(VMRegPair src, VMRegPair dst, Register tmp) {
 void MacroAssembler::fast_lock(Register obj, Register hdr, Register t1, Register t2, Label& slow, bool rt_check_stack) {
   assert(UseFastLocking, "only used with fast-locking");
   assert_different_registers(obj, hdr, t1, t2);
-  return;
+  Unimplemented(); 
 
   // if (rt_check_stack) {
   //   // Check if we would have space on lock-stack for the object.
@@ -4508,7 +4508,7 @@ void MacroAssembler::fast_lock(Register obj, Register hdr, Register t1, Register
 void MacroAssembler::fast_unlock(Register obj, Register hdr, Register t1, Register t2, Label& slow) {
   assert(UseFastLocking, "only used with fast-locking");
   assert_different_registers(obj, hdr, t1, t2);
-  return;
+  Unimplemented(); 
 
   // // Load the expected old header (lock-bits cleared to indicate 'locked') into hdr
   // andr(hdr, hdr, ~markWord::lock_mask_in_place);
