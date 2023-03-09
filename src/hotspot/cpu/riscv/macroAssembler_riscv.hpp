@@ -1376,8 +1376,8 @@ public:
   }
 #endif
 
-  void fast_lock(Register obj, Register hdr, Register t1, Register t2, Label& slow, bool rt_check_stack = true);
-  void fast_unlock(Register obj, Register hdr, Register t1, Register t2, Label& slow);
+  void fast_lock(Register obj, Register hdr, Register temp1, Register temp2, Label& slow, bool rt_check_stack = true);
+  void fast_unlock(Register obj, Register hdr, Register swap_reg, Register temp1, Label& slow);
   
 
 private:

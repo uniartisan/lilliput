@@ -4524,56 +4524,54 @@ void MacroAssembler::double_move(VMRegPair src, VMRegPair dst, Register tmp) {
 // Registers:
 //  - obj: the object to be locked
 //  - hdr: the header, already loaded from obj, will be destroyed
-//  - t1, t2, t3: temporary registers, will be destroyed
-void MacroAssembler::fast_lock(Register obj, Register hdr, Register t1, Register t2, Label& slow, bool rt_check_stack) {
+//  - temp1, temp2, temp3: temporary registers, will be destroyed
+void MacroAssembler::fast_lock(Register obj, Register hdr, Register temp1, Register temp2, Label& slow, bool rt_check_stack) {
   assert(UseFastLocking, "only used with fast-locking");
-  assert_different_registers(obj, hdr, t1, t2);
-  Unimplemented(); 
+  assert_different_registers(obj, hdr, temp1, temp2);
 
-  // if (rt_check_stack) {
-  //   // Check if we would have space on lock-stack for the object.
-  //   ld(t1, Address(rthread, JavaThread::lock_stack_current_offset()));
-  //   ld(t2, Address(rthread, JavaThread::lock_stack_limit_offset()));
-  //   sub(t1, t1, t2);
-  //   bgez(t1, Assembler::GE, slow);
-  // }
+  if (rt_check_stack) {
+    // Check if we would have space on lock-stack for the object.
+    la(t1, Address(xthread, JavaThread::lock_stack_current_offset()));
+    la(t2, Address(xthread, JavaThread::lock_stack_limit_offset()));
+    sub(t1, t1, t2);
+    bgez(t1, slow);
+  }
 
-  // // Load (object->mark() | 1) into hdr
-  // orr(hdr, hdr, markWord::unlocked_value);
-  // // Clear lock-bits, into t2
-  // xorr(t2, hdr, markWord::unlocked_value);
-  // // Try to swing header from unlocked to locked
-  // cmpxchg(/*addr*/ obj, /*expected*/ hdr, /*new*/ t2, Assembler::xword,
-  //         /*acquire*/ true, /*release*/ true, /*weak*/ false, t1);
-  // br(Assembler::NE, slow);
+  // Load (object->mark() | 1) into hdr
+  ori(hdr, hdr, markWord::unlocked_value);
+  // Clear lock-bits, into t2
+  xori(t2, hdr, markWord::unlocked_value);
+  // Try to swing header from unlocked to locked
+  cmpxchg(/*addr*/ obj, /*expected*/ hdr, /*new*/ temp2, Assembler::int64,
+           Assembler::aq /* acquire */, Assembler::rl /* release */, /*result*/ temp1, /*result as bool*/ true);
+  bnez(temp1, slow, true /* is_far */);
 
-  // // After successful lock, push object on lock-stack
-  // ld(t1, Address(rthread, JavaThread::lock_stack_current_offset()));
-  // sd(obj, Address(t1, 0));
-  // add(t1, t1, oopSize);
-  // sd(t1, Address(rthread, JavaThread::lock_stack_current_offset()));
+  // After successful lock, push object on lock-stack
+  ld(t1, Address(xthread, JavaThread::lock_stack_current_offset()));
+  sd(obj, Address(t1, 0));
+  add(t1, t1, oopSize);
+  sd(t1, Address(xthread, JavaThread::lock_stack_current_offset()));
 }
 
-void MacroAssembler::fast_unlock(Register obj, Register hdr, Register t1, Register t2, Label& slow) {
+void MacroAssembler::fast_unlock(Register obj, Register hdr, Register swap_reg, Register temp1, Label& slow) {
   assert(UseFastLocking, "only used with fast-locking");
-  assert_different_registers(obj, hdr, t1, t2);
-  Unimplemented(); 
+  assert_different_registers(obj, hdr, swap_reg, temp1);
 
-  // // Load the expected old header (lock-bits cleared to indicate 'locked') into hdr
-  // andr(hdr, hdr, ~markWord::lock_mask_in_place);
+  // Load the expected old header (lock-bits cleared to indicate 'locked') into hdr
+  andi(hdr, hdr, ~markWord::lock_mask_in_place);
 
-  // // Load the new header (unlocked) into t1
-  // orr(t1, hdr, markWord::unlocked_value);
+  // Load the new header (unlocked) into t1
+  ori(swap_reg, hdr, markWord::unlocked_value);
 
-  // // Try to swing header from locked to unlocked
-  // cmpxchg(obj, hdr, t1, Assembler::xword,
-  //         /*acquire*/ true, /*release*/ true, /*weak*/ false, t2);
-  // br(Assembler::NE, slow);
+  // Try to swing header from locked to unlocked
+  cmpxchg(obj, hdr, swap_reg, Assembler::int64, Assembler::aq /* acquire */,
+             Assembler::rl /* release */, /*result*/ temp1, /*result as bool*/ true);
+  bnez(temp1, slow, true /* is_far */);
 
-  // // After successful unlock, pop object from lock-stack
-  // ldr(t1, Address(rthread, JavaThread::lock_stack_current_offset()));
-  // sub(t1, t1, oopSize);
-  // str(t1, Address(rthread, JavaThread::lock_stack_current_offset()));
+  // After successful unlock, pop object from lock-stack
+  la(swap_reg, Address(xthread, JavaThread::lock_stack_current_offset()));
+  sub(swap_reg, swap_reg, oopSize);
+  sd(swap_reg, Address(xthread, JavaThread::lock_stack_current_offset()));
 }
 
 void MacroAssembler::rt_call(address dest, Register tmp) {
