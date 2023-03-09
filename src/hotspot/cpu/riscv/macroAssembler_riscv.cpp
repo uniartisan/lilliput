@@ -2084,23 +2084,6 @@ void MacroAssembler::load_klass_check_null(Register dst, Register src, Register 
   load_klass(dst, src, tmp);
 }
 
-void MacroAssembler::store_klass(Register dst, Register src, Register tmp) {
-  // FIXME: Should this be a store release? concurrent gcs assumes
-  // klass length is valid if klass field is not null.
-  if (UseCompressedClassPointers) {
-    encode_klass_not_null(src, tmp);
-    sw(src, Address(dst, oopDesc::klass_offset_in_bytes()));
-  } else {
-    sd(src, Address(dst, oopDesc::klass_offset_in_bytes()));
-  }
-}
-
-void MacroAssembler::store_klass_gap(Register dst, Register src) {
-  if (UseCompressedClassPointers) {
-    // Store to klass gap in destination
-    sw(src, Address(dst, oopDesc::klass_gap_offset_in_bytes()));
-  }
-}
 
 void MacroAssembler::decode_klass_not_null(Register r, Register tmp) {
   assert_different_registers(r, tmp);

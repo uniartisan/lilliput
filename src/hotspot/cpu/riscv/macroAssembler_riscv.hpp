@@ -196,7 +196,6 @@ class MacroAssembler: public Assembler {
                        Register val, Register tmp1, Register tmp2, Register tmp3);
   void load_klass(Register dst, Register src, Register tmp = t0);
   void load_klass_check_null(Register dst, Register src, Register tmp = t0);
-  void store_klass(Register dst, Register src, Register tmp = t0);
   void cmp_klass(Register oop, Register trial_klass, Register tmp1, Register tmp2, Label &L);
 
   void encode_klass_not_null(Register r, Register tmp = t0);
@@ -216,7 +215,6 @@ class MacroAssembler: public Assembler {
   void store_heap_oop(Address dst, Register val, Register tmp1,
                       Register tmp2, Register tmp3, DecoratorSet decorators = 0);
 
-  void store_klass_gap(Register dst, Register src);
 
   // currently unimplemented
   // Used for storing NULL. All other oop constants should be
