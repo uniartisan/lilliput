@@ -77,7 +77,7 @@ int C1_MacroAssembler::lock_object(Register hdr, Register obj, Register disp_hdr
     fast_lock(obj, hdr, t0, t1, slow_case, false);
   } else {
     // and mark it as unlocked
-    jori(hdr, hdr, markWord::unlocked_value);
+    ori(hdr, hdr, markWord::unlocked_value);
     // save unlocked object header into the displaced header location on the stack
     sd(hdr, Address(disp_hdr, 0));
     // test if object header is still the same (i.e. unlocked), and if so, store the
@@ -167,17 +167,9 @@ void C1_MacroAssembler::initialize_header(Register obj, Register klass, Register
   mv(tmp1, (int32_t)(intptr_t)markWord::prototype().value());
   sd(tmp1, Address(obj, oopDesc::mark_offset_in_bytes()));
 
-  if (UseCompressedClassPointers) { // Take care not to kill klass
-    encode_klass_not_null(tmp1, klass, tmp2);
-    sw(tmp1, Address(obj, oopDesc::klass_offset_in_bytes()));
-  } else {
-    sd(klass, Address(obj, oopDesc::klass_offset_in_bytes()));
-  }
 
   if (len->is_valid()) {
     sw(len, Address(obj, arrayOopDesc::length_offset_in_bytes()));
-  } else if (UseCompressedClassPointers) {
-    store_klass_gap(obj, zr);
   }
 }
 
