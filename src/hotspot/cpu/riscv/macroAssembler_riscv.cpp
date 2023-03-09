@@ -2090,6 +2090,8 @@ void MacroAssembler::decode_klass_not_null(Register r, Register tmp) {
   decode_klass_not_null(r, r, tmp);
 }
 
+// todo
+// https://github.com/uniartisan/lilliput/commit/68fbdb32af390762a01380b277a3ae30f864fdb4
 void MacroAssembler::decode_klass_not_null(Register dst, Register src, Register tmp) {
   assert(UseCompressedClassPointers, "should only be used for compressed headers");
 
