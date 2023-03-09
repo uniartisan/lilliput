@@ -40,6 +40,29 @@
 // on arguments should also go in here.
 
 class MacroAssembler: public Assembler {
+ public:
+// TODO： 
+// https://github.com/uniartisan/lilliput/commit/68fbdb32af390762a01380b277a3ae30f864fdb4#diff-1aa79d2d356a1cec3cf5744e14ae25b8c34cf094926c77e82b8884e08d12b634
+    enum KlassDecodeMode {
+    KlassDecodeNone,
+    KlassDecodeZero,
+    KlassDecodeXor,
+    KlassDecodeMovk
+  };
+
+  // Return the current narrow Klass pointer decode mode. Initialized on first call.
+  static KlassDecodeMode klass_decode_mode();
+
+  // Given an arbitrary base address, return the KlassDecodeMode that would be used. Return KlassDecodeNone
+  // if base address is not valid for encoding.
+  static KlassDecodeMode klass_decode_mode_for_base(address base);
+
+  // Returns a static string
+  static const char* describe_klass_decode_mode(KlassDecodeMode mode);
+
+ private:
+
+  static KlassDecodeMode _klass_decode_mode;
 
  public:
   MacroAssembler(CodeBuffer* code) : Assembler(code) {}

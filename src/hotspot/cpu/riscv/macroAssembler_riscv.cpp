@@ -27,7 +27,9 @@
 #include "precompiled.hpp"
 #include "asm/assembler.hpp"
 #include "asm/assembler.inline.hpp"
+#include "compiler/compileTask.hpp"
 #include "compiler/disassembler.hpp"
+#include "logging/log.hpp"
 #include "gc/shared/barrierSet.hpp"
 #include "gc/shared/barrierSetAssembler.hpp"
 #include "gc/shared/cardTable.hpp"
@@ -39,6 +41,7 @@
 #include "memory/universe.hpp"
 #include "nativeInst_riscv.hpp"
 #include "oops/accessDecorators.hpp"
+#include "oops/compressedKlass.inline.hpp"
 #include "oops/compressedOops.inline.hpp"
 #include "oops/klass.inline.hpp"
 #include "oops/oop.hpp"
@@ -2196,6 +2199,67 @@ void  MacroAssembler::decode_heap_oop(Register d, Register s) {
   }
   verify_oop_msg(d, "broken oop in decode_heap_oop");
 }
+
+MacroAssembler::KlassDecodeMode MacroAssembler::_klass_decode_mode(KlassDecodeNone);
+
+// TODO 68fbdb32af3907
+// https://github.com/uniartisan/lilliput/commit/68fbdb32af390762a01380b277a3ae30f864fdb4#diff-0f4150a9c607ccd590bf256daa800c0276144682a92bc6bdced5e8bc1bb81f3a
+// Returns a static string
+const char* MacroAssembler::describe_klass_decode_mode(MacroAssembler::KlassDecodeMode mode) {
+  Unimplemented();
+  // switch (mode) {
+  // case KlassDecodeNone: return "none";
+  // case KlassDecodeZero: return "zero";
+  // case KlassDecodeXor:  return "xor";
+  // case KlassDecodeMovk: return "movk";
+  // default:
+  //   ShouldNotReachHere();
+  // }
+  // return NULL;
+}
+
+// Return the current narrow Klass pointer decode mode.
+MacroAssembler::KlassDecodeMode MacroAssembler::klass_decode_mode() {
+  Unimplemented();
+  // if (_klass_decode_mode == KlassDecodeNone) {
+  //   // First time initialization
+  //   assert(UseCompressedClassPointers, "not using compressed class pointers");
+  //   assert(Metaspace::initialized(), "metaspace not initialized yet");
+
+  //   _klass_decode_mode = klass_decode_mode_for_base(CompressedKlassPointers::base());
+  //   guarantee(_klass_decode_mode != KlassDecodeNone,
+  //             PTR_FORMAT " is not a valid encoding base on aarch64",
+  //             p2i(CompressedKlassPointers::base()));
+  //   log_info(metaspace)("klass decode mode initialized: %s", describe_klass_decode_mode(_klass_decode_mode));
+  // }
+  // return _klass_decode_mode;
+}
+
+// Given an arbitrary base address, return the KlassDecodeMode that would be used. Return KlassDecodeNone
+// if base address is not valid for encoding.
+MacroAssembler::KlassDecodeMode MacroAssembler::klass_decode_mode_for_base(address base) {
+  Unimplemented();
+  // assert(CompressedKlassPointers::shift() != 0, "not lilliput?");
+
+  // const uint64_t base_u64 = (uint64_t) base;
+
+  // if (base_u64 == 0) {
+  //   return KlassDecodeZero;
+  // }
+
+  // if (operand_valid_for_logical_immediate(false, base_u64) &&
+  //     ((base_u64 & (KlassEncodingMetaspaceMax - 1)) == 0)) {
+  //   return KlassDecodeXor;
+  // }
+
+  // const uint64_t shifted_base = base_u64 >> CompressedKlassPointers::shift();
+  // if ((shifted_base & 0xffff0000ffffffff) == 0) {
+  //   return KlassDecodeMovk;
+  // }
+
+  // return KlassDecodeNone;
+}
+
 
 void MacroAssembler::store_heap_oop(Address dst, Register val, Register tmp1,
                                     Register tmp2, Register tmp3, DecoratorSet decorators) {
