@@ -2103,9 +2103,6 @@ void MacroAssembler::load_nklass(Register dst, Register src, Register tmp) {
 void MacroAssembler::load_klass(Register dst, Register src, Register tmp) {
   load_nklass(dst, src, tmp);
   decode_klass_not_null(dst, tmp);
-  } else {
-    ld(dst, Address(src, oopDesc::klass_offset_in_bytes()));
-  }
 }
 
 void MacroAssembler::load_klass_check_null(Register dst, Register src, Register tmp) {
