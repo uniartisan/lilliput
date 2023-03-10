@@ -1877,6 +1877,8 @@ void MacroAssembler::orptr(Address adr, RegisterOrConstant src, Register tmp1, R
   sd(tmp1, adr);
 }
 
+// todo e3b8f9837d0
+// https://github.com/uniartisan/lilliput/commit/e3b8f9837d0b405a712a323a53ed92de2632eb64
 void MacroAssembler::cmp_klass(Register oop, Register trial_klass, Register tmp1, Register tmp2, Label &L) {
   assert_different_registers(oop, trial_klass, tmp1, tmp2);
   if (UseCompressedClassPointers) {
@@ -2121,6 +2123,8 @@ void MacroAssembler::decode_klass_not_null(Register r, Register tmp) {
 void MacroAssembler::decode_klass_not_null(Register dst, Register src, Register tmp) {
   assert(UseCompressedClassPointers, "should only be used for compressed headers");
 
+  assert(CompressedKlassPointers::shift() != 0, "not lilliput?");
+
   if (CompressedKlassPointers::base() == NULL) {
     if (CompressedKlassPointers::shift() != 0) {
       assert(LogKlassAlignmentInBytes == CompressedKlassPointers::shift(), "decode alg wrong");
@@ -2141,8 +2145,12 @@ void MacroAssembler::decode_klass_not_null(Register dst, Register src, Register 
 
   if (CompressedKlassPointers::shift() != 0) {
     assert(LogKlassAlignmentInBytes == CompressedKlassPointers::shift(), "decode alg wrong");
-    assert_different_registers(t0, xbase);
-    shadd(dst, src, xbase, t0, LogKlassAlignmentInBytes);
+    Register _tmp = t0;
+    if (_tmp == xbase){
+      _tmp = t1;
+    }
+    assert_different_registers(_tmp, xbase);
+    shadd(dst, src, xbase, _tmp, LogKlassAlignmentInBytes);
   } else {
     add(dst, xbase, src);
   }

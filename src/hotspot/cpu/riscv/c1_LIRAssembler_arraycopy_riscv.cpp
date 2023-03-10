@@ -188,6 +188,8 @@ void LIR_Assembler::arraycopy_checkcast(Register src, Register src_pos, Register
   __ addw(dst_pos, dst_pos, t0);
 }
 
+// TODO：
+// https://github.com/uniartisan/lilliput/commit/e3b8f9837d0b405a712a323a53ed92de2632eb64
 void LIR_Assembler::arraycopy_type_check(Register src, Register src_pos, Register length,
                                          Register dst, Register dst_pos, Register tmp,
                                          CodeStub *stub, BasicType basic_type, int flags) {

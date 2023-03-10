@@ -1521,6 +1521,7 @@ void LIR_Assembler::emit_lock(LIR_OpLock* op) {
   __ bind(*op->stub()->continuation());
 }
 
+// https://github.com/uniartisan/lilliput/commit/bf6d4f3b7111bc75dad351546c4120f7dbc128f9
 void LIR_Assembler::emit_load_klass(LIR_OpLoadKlass* op) {
   Register obj = op->obj()->as_pointer_register();
   Register result = op->result_opr()->as_pointer_register();
@@ -1531,28 +1532,19 @@ void LIR_Assembler::emit_load_klass(LIR_OpLoadKlass* op) {
     add_debug_info_for_null_check_here(info);
   }
 
-// TODO a9ec867aea4d665a1fc
-  Unimplemented(); 
-  // if (UseCompressedClassPointers) {
-  //   __ lwu(result, Address(obj, oopDesc::klass_offset_in_bytes()));
-  //   __ decode_klass_not_null(result);
-  // } else {
-  //   __ ld(result, Address(obj, oopDesc::klass_offset_in_bytes()));
-  // }
   assert(UseCompressedClassPointers, "expects UseCompressedClassPointers");
 
-  // // Check if we can take the (common) fast path, if obj is unlocked.
-  // __ ld(tmp, Address(obj, oopDesc::mark_offset_in_bytes()));
-  // __ xor(tmp, tmp, markWord::unlocked_value);
-  // __ tst(tmp, markWord::lock_mask_in_place);
-  // __ br(Assembler::NE, *op->stub()->entry());
+    // Check if we can take the (common) fast path, if obj is unlocked.
+  __ la(result, Address(obj, oopDesc::mark_offset_in_bytes()));
+  __ andi(tmp, result, markWord::monitor_value);
+  __ beqz(tmp, *op->stub()->entry());
+  __ bind(*op->stub()->continuation());
 
-  // // Fast-path: shift and decode Klass*.
-  // __ mov(result, tmp);
-  // __ lsr(result, result, markWord::klass_shift);
-  // __ decode_klass_not_null(result);
+  // Shift and decode Klass*.
+  __ li(tmp, markWord::klass_shift);
+  __ srl(result, result, tmp);
+  __ decode_klass_not_null(result);
 
-  // __ bind(*op->stub()->continuation());
 }
 
 void LIR_Assembler::emit_profile_call(LIR_OpProfileCall* op) {
