@@ -2075,6 +2075,7 @@ void MacroAssembler::encode_heap_oop(Register d, Register s) {
 
 // TODO: e3b8f9837d0b405a712a32
 // https://github.com/uniartisan/lilliput/commit/e3b8f9837d0b405a712a323a53ed92de2632eb64
+// https://github.com/uniartisan/lilliput/commit/bf6d4f3b7111bc75dad351546c4120f7dbc128f9
 // Loads the obj's Klass* into dst.
 // src、dst and tmp must be distinct registers
 // Preserves all registers (incl src, rscratch1 and rscratch2), but clobbers condition flags
@@ -2089,16 +2090,13 @@ void MacroAssembler::load_nklass(Register dst, Register src, Register tmp) {
   la(dst, Address(src, oopDesc::mark_offset_in_bytes()));
   andi(tmp, dst, markWord::monitor_value);
   beqz(tmp, fast);
-  // tst(dst, markWord::monitor_value);
-  // br(Assembler::EQ, fast);
 
   // Fetch displaced header
   la(dst, Address(dst, OM_OFFSET_NO_MONITOR_VALUE_TAG(header)));
 
   // Fast-path: shift and decode Klass*.
   bind(fast);
-  li(tmp, markWord::klass_shift);
-  srl(dst, dst, tmp);
+  srli(dst, dst, markWord::klass_shift);
 }
 
 // src、dst and tmp must be distinct registers
