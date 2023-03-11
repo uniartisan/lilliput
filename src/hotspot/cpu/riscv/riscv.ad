@@ -4806,15 +4806,31 @@ instruct loadKlass(iRegPNoSp dst, memory mem)
 %}
 
 // Load Narrow Klass Pointer
-instruct loadNKlass(iRegNNoSp dst, memory mem)
+// todo
+// https://github.com/uniartisan/lilliput/commit/9c47468527d4b81180a284d0b1367d91fe49ed50
+// bf6d4f3b711
+instruct loadNKlass(iRegNNoSp dst, memory mem, rFlagsReg cr)
 %{
   match(Set dst (LoadNKlass mem));
+  effect(TEMP_DEF dst, KILL cr);
 
   ins_cost(LOAD_COST);
   format %{ "lwu  $dst, $mem\t# loadNKlass, compressed class ptr, #@loadNKlass" %}
 
   ins_encode %{
-    __ lwu(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    assert($mem$$disp == oopDesc::klass_offset_in_bytes(), "expect correct offset");
+    assert($mem$$index$$Register == noreg, "expect no index");
+    Register dst = $dst$$Register;
+    Register obj = $mem$$base$$Register;
+    C2LoadNKlassStub* stub = new (Compile::current()->comp_arena()) C2LoadNKlassStub(dst);
+    Compile::current()->output()->add_stub(stub);
+    __ la(dst, Address(obj, oopDesc::mark_offset_in_bytes()));
+    // NOTE: We can't use tbnz here, because the target is sometimes too far away
+    // and cannot be encoded.
+    __ andi(t0, dst, markWord::monitor_value);
+    __ bnez(t0, stub->entry());
+    __ bind(stub->continuation());
+    __ srli(dst, dst, markWord::klass_shift);
   %}
 
   ins_pipe(iload_reg_mem);
